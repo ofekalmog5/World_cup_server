@@ -7,13 +7,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
-import bgu.spl.net.api.MessagingProtocol;
 import bgu.spl.net.api.StompMessagingProtocol;
 
 public abstract class BaseServer<T> implements Server<T> {
 
     private final int port;
-    private final Supplier<MessagingProtocol<T>> protocolFactory;
+    private final Supplier<StompMessagingProtocol<T>> protocolFactory;
     private final Supplier<MessageEncoderDecoder<T>> encdecFactory;
     private ServerSocket sock;
     private AtomicInteger idCounter = new AtomicInteger(0);
@@ -21,7 +20,7 @@ public abstract class BaseServer<T> implements Server<T> {
     
     public BaseServer(
             int port,
-            Supplier<MessagingProtocol<T>> protocolFactory,
+            Supplier<StompMessagingProtocol<T>> protocolFactory,
             Supplier<MessageEncoderDecoder<T>> encdecFactory) {
 
         this.port = port;
@@ -39,11 +38,9 @@ public void serve() {
         while (!Thread.currentThread().isInterrupted()) {
             Socket clientSock = serverSock.accept();
 
-            MessagingProtocol<T> protocol = protocolFactory.get();
+            StompMessagingProtocol<T> protocol = protocolFactory.get();
             int connectionId = idCounter.getAndIncrement();
-            if (protocol instanceof StompMessagingProtocol) {
-                ((StompMessagingProtocol<T>) protocol).start(connectionId, connections);
-            }
+            protocol.start(connectionId, connections);
 
             BlockingConnectionHandler<T> handler = new BlockingConnectionHandler<>(
                     clientSock,

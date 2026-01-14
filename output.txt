@@ -1,0 +1,46 @@
+Germany vs Japan
+Game stats:
+General stats:
+    active: true
+    before halftime: false
+Team a stats:
+    goals: 1
+    possession: 45%
+    red cards: 0
+    yellow cards: 0
+Team b stats:
+    goals: 1
+    possession: 55%
+    red cards: 0
+    yellow cards: 0
+Game event reports:
+0 - kickoff:
+
+Game starts!
+
+
+1980 - goal:
+
+Germany scores!
+
+
+4500 - goal:
+
+Japan equalizes!
+
+
+0 - kickoff:
+
+Game starts!
+
+
+1980 - goal:
+
+Germany scores!
+
+
+4500 - goal:
+
+Japan equalizes!
+
+

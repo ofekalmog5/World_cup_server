@@ -142,8 +142,8 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     shouldTerminate = true;
     }
 
-    private void handleSend(String message) {
-    Map<String, String> headers = parseHeaders(message);
+        private void handleSend(String message) {
+        Map<String, String> headers = parseHeaders(message);
     
       if (this.currentUser == null) {
         sendError("Not Logged In", "You must send a CONNECT frame first", headers);
@@ -163,14 +163,16 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
     int bodyStartIndex = message.indexOf("\n\n");
     int nullCharIndex = message.indexOf('\u0000');
-    
+    if (nullCharIndex == -1) {
+        nullCharIndex = message.length();
+    }
+
     String body;
-    if (bodyStartIndex != -1 && nullCharIndex != -1) {
+    if (bodyStartIndex != -1) {
         body = message.substring(bodyStartIndex + 2, nullCharIndex);
     } else {
         body = "";
     }
-
 
     String messageFrame = "MESSAGE\n" +
                           "message-id:" + msgId + "\n" +
@@ -248,12 +250,19 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
             sendError("Not Logged In", "You must send a CONNECT frame first", headers);
             return;
         }
-
+        unsubscribeAll();
         sendReceiptIfRequested(headers);
         db.logout(connectionId);
         connections.disconnect(connectionId);
         shouldTerminate = true;
         currentUser = null;
+    }
+
+    private void unsubscribeAll() {
+        for (Map.Entry<Integer, String> entry : activeSubscriptions.entrySet()) {
+            connections.unsubscribe(entry.getValue(), connectionId);
+        }
+        activeSubscriptions.clear();
     }
     private void sendReceiptIfRequested(Map<String, String> headers) {
     String receiptId = headers.get("receipt");

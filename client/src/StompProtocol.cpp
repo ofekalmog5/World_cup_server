@@ -3,6 +3,8 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <thread>
 
 StompProtocol::StompProtocol() : 
     currentUsername(""), 
@@ -57,20 +59,39 @@ std::string StompProtocol::processInput(std::string input) {
     }
 
     if (command == "exit") {
-        std::string gameName = words[1];
-        if (channelToSubId.count(gameName) == 0) return ""; 
+        // Check if channel name provided (unsubscribe from channel)
+        if (words.size() > 1) {
+            std::string gameName = words[1];
+            if (channelToSubId.count(gameName) == 0) {
+                std::cout << "Error: You are not subscribed to channel " << gameName << std::endl;
+                return "";
+            }
 
-        int subId = channelToSubId[gameName];
-        int recId = receiptCounter++;
-        receiptIdToCommand[recId] = "Exited channel " + gameName;
+            int subId = channelToSubId[gameName];
+            int recId = receiptCounter++;
+            receiptIdToCommand[recId] = "Exited channel " + gameName;
 
-        std::string frame = "UNSUBSCRIBE\nid:" + std::to_string(subId) + "\nreceipt:" + std::to_string(recId) + "\n\n";
-        return frame;
+            std::string frame = "UNSUBSCRIBE\nid:" + std::to_string(subId) + "\nreceipt:" + std::to_string(recId) + "\n\n";
+            return frame;
+        } else {
+            // No channel specified - disconnect from server (logout)
+            int recId = receiptCounter++;
+            receiptIdToCommand[recId] = "logout";
+            this->currentUsername = "";  // Clear username on disconnect
+            subIdToChannel.clear();       // Clear subscriptions
+            channelToSubId.clear();
+            std::cout << "You are now logged out." << std::endl;
+            return "DISCONNECT\nreceipt:" + std::to_string(recId) + "\n\n";
+        }
     }
 
     if (command == "logout") {
         int recId = receiptCounter++;
         receiptIdToCommand[recId] = "logout";
+        this->currentUsername = "";  // Clear username on disconnect
+        subIdToChannel.clear();       // Clear subscriptions
+        channelToSubId.clear();
+        std::cout << "You are now logged out." << std::endl;
         return "DISCONNECT\nreceipt:" + std::to_string(recId) + "\n\n";
     }
     if (command == "report") {
@@ -79,6 +100,8 @@ std::string StompProtocol::processInput(std::string input) {
         
         for (const Event& e : n_e.events) {
             allFrames += "SEND\ndestination:/" + e.get_team_a_name() + "_" + e.get_team_b_name() + "\n\n";
+            
+            // Body: all the event data
             allFrames += "user:" + currentUsername + "\n";
             allFrames += "team a:" + e.get_team_a_name() + "\n";
             allFrames += "team b:" + e.get_team_b_name() + "\n";
@@ -90,9 +113,20 @@ std::string StompProtocol::processInput(std::string input) {
                 allFrames += "    " + key + ":" + val + "\n";
             }
             
+            allFrames += "team a updates:\n";
+            for (auto const& [key, val] : e.get_team_a_updates()) {
+                allFrames += "    " + key + ":" + val + "\n";
+            }
+            
+            allFrames += "team b updates:\n";
+            for (auto const& [key, val] : e.get_team_b_updates()) {
+                allFrames += "    " + key + ":" + val + "\n";
+            }
+            
             allFrames += "description:\n" + e.get_description() + "\n";
             allFrames += '\0'; 
         }
+        std::cout << "Events reported successfully" << std::endl;
         return allFrames;
     }
     if (command == "summary") {
@@ -133,6 +167,8 @@ std::string StompProtocol::processInput(std::string input) {
                 outFile << e.get_description() << "\n\n";
             }
         }
+    } else {
+        outFile << "No events found for channel " << gameName << "\n";
     }
     outFile.close();
     return ""; 
@@ -178,7 +214,12 @@ void StompProtocol::processResponse(std::string frame) {
     size_t bodyPos = frame.find("\n\n");
     if (bodyPos != std::string::npos) {
         std::string body = frame.substr(bodyPos + 2);
-        
+
+        // Remove null terminator if present
+        if (!body.empty() && body.back() == '\0') {
+            body.pop_back();
+        }
+
         std::istringstream stream(body);
         std::string line;
         
@@ -191,11 +232,11 @@ void StompProtocol::processResponse(std::string frame) {
         while (std::getline(stream, line)) {
             if (line.empty()) continue;
             
-            if (line.find("user:") == 0) user = line.substr(5);
-            else if (line.find("team a:") == 0 && line.find("team a updates") == std::string::npos) teamA = line.substr(7);
-            else if (line.find("team b:") == 0 && line.find("team b updates") == std::string::npos) teamB = line.substr(7);
-            else if (line.find("event name:") == 0) eventName = line.substr(11);
-            else if (line.find("time:") == 0) time = std::stoi(line.substr(5));
+            if (line.find("user:") == 0) { user = line.substr(5); }
+            else if (line.find("team a:") == 0 && line.find("team a updates") == std::string::npos) { teamA = line.substr(7); }
+            else if (line.find("team b:") == 0 && line.find("team b updates") == std::string::npos) { teamB = line.substr(7); }
+            else if (line.find("event name:") == 0) { eventName = line.substr(11); }
+            else if (line.find("time:") == 0) { time = std::stoi(line.substr(5)); }
             
             else if (line.find("general game updates:") == 0) currentSection = "gen";
             else if (line.find("team a updates:") == 0) currentSection = "a";

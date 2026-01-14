@@ -1,5 +1,4 @@
-CXX := /ucrt64/bin/g++
-export PATH := /ucrt64/bin:$(PATH)
+CXX := g++
 CFLAGS := -c -Wall -Weffc++ -g -std=c++11 -Iinclude
 LDFLAGS := -lpthread -lws2_32
 

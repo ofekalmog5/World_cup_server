@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.net.Socket;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
-import bgu.spl.net.api.MessagingProtocol;
+import bgu.spl.net.api.StompMessagingProtocol;
 
 public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler<T> {
 
-    private final MessagingProtocol<T> protocol;
+    private final StompMessagingProtocol<T> protocol;
     private final MessageEncoderDecoder<T> encdec;
     private final Socket sock;
     private final Connections<T> connections;
@@ -21,7 +21,7 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
 
     public BlockingConnectionHandler(Socket sock,
                                      MessageEncoderDecoder<T> reader,
-                                     MessagingProtocol<T> protocol,
+                                     StompMessagingProtocol<T> protocol,
                                      Connections<T> connections,
                                      int connectionId) {
         this.sock = sock;
@@ -73,7 +73,7 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
     }
     }
     }
-    public MessagingProtocol<T> getProtocol() {
+    public StompMessagingProtocol<T> getProtocol() {
     return protocol;
 }
 }

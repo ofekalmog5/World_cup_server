@@ -8,7 +8,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
-import bgu.spl.net.api.MessagingProtocol;
 import bgu.spl.net.api.StompMessagingProtocol;
 
 public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
@@ -16,7 +15,7 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
     private static final int BUFFER_ALLOCATION_SIZE = 1 << 13; //8k
     private static final ConcurrentLinkedQueue<ByteBuffer> BUFFER_POOL = new ConcurrentLinkedQueue<>();
 
-    private final MessagingProtocol<T> protocol;
+    private final StompMessagingProtocol<T> protocol;
     private final MessageEncoderDecoder<T> encdec;
     private final Queue<ByteBuffer> writeQueue = new ConcurrentLinkedQueue<>();
     private final SocketChannel chan;
@@ -26,7 +25,7 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
     private boolean started = false;
     
     public NonBlockingConnectionHandler(MessageEncoderDecoder<T> reader,
-        MessagingProtocol<T> protocol,
+        StompMessagingProtocol<T> protocol,
         SocketChannel chan,
         Reactor reactor,
         int connectionId,
@@ -53,8 +52,8 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
             buf.flip();
             return () -> {
                 try {
-                    if (!started && protocol instanceof StompMessagingProtocol) {
-                        ((StompMessagingProtocol<T>) protocol).start(connectionId, connections);
+                    if (!started) {
+                        protocol.start(connectionId, connections);
                         started = true;
                     }
 
@@ -132,7 +131,7 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
         reactor.updateInterestedOps(chan, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
     }
 }
-public MessagingProtocol<T> getProtocol() {
+public StompMessagingProtocol<T> getProtocol() {
     return protocol;
 }
 }

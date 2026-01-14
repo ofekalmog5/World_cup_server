@@ -19,7 +19,7 @@ bool ConnectionHandler::connect() {
 	std::cout << "Starting connect to "
 	          << host_ << ":" << port_ << std::endl;
 	try {
-		tcp::endpoint endpoint(boost::asio::ip::address::from_string(host_), port_); // the server endpoint
+		tcp::endpoint endpoint(boost::asio::ip::make_address(host_), port_); // the server endpoint
 		boost::system::error_code error;
 		socket_.connect(endpoint, error);
 		if (error)

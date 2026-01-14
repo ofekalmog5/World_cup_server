@@ -1,0 +1,72 @@
+{
+    "team a": "Germany",
+    "team b": "Japan",
+    "events": [
+        {
+            "event name": "kickoff",
+            "time": 0,
+            "event owner": "",
+            "general game updates": {
+                "active": "true",
+                "before halftime": "true"
+            },
+            "team a updates": {
+                "goals": "0",
+                "yellow cards": "0",
+                "red cards": "0",
+                "possession": "50%"
+            },
+            "team b updates": {
+                "goals": "0",
+                "yellow cards": "0",
+                "red cards": "0",
+                "possession": "50%"
+            },
+            "description": "Game starts!"
+        },
+        {
+            "event name": "goal",
+            "time": 1980,
+            "event owner": "",
+            "general game updates": {
+                "active": "true",
+                "before halftime": "true"
+            },
+            "team a updates": {
+                "goals": "1",
+                "yellow cards": "0",
+                "red cards": "0",
+                "possession": "65%"
+            },
+            "team b updates": {
+                "goals": "0",
+                "yellow cards": "0",
+                "red cards": "0",
+                "possession": "35%"
+            },
+            "description": "Germany scores!"
+        },
+        {
+            "event name": "goal",
+            "time": 4500,
+            "event owner": "",
+            "general game updates": {
+                "active": "true",
+                "before halftime": "false"
+            },
+            "team a updates": {
+                "goals": "1",
+                "yellow cards": "0",
+                "red cards": "0",
+                "possession": "45%"
+            },
+            "team b updates": {
+                "goals": "1",
+                "yellow cards": "0",
+                "red cards": "0",
+                "possession": "55%"
+            },
+            "description": "Japan equalizes!"
+        }
+    ]
+}
