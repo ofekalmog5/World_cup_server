@@ -100,10 +100,26 @@ names_and_events parseEventsFile(std::string json_path)
     std::vector<Event> events;
     for (auto &event : data["events"])
     {
-        std::string name = event["event name"];
-        int time = event["time"];
-        std::string description = event["description"];
-        std::string event_owner = event["event owner"];
+        std::string name = "";
+        if (event.contains("event name") && !event["event name"].is_null()) {
+            name = event["event name"];
+        }
+        
+        int time = 0;
+        if (event.contains("time") && !event["time"].is_null()) {
+            time = event["time"];
+        }
+        
+        std::string description = "";
+        if (event.contains("description") && !event["description"].is_null()) {
+            description = event["description"];
+        }
+        
+        std::string event_owner = "";
+        if (event.contains("event owner") && !event["event owner"].is_null()) {
+            event_owner = event["event owner"];
+        }
+        
         std::map<std::string, std::string> game_updates;
         std::map<std::string, std::string> team_a_updates;
         std::map<std::string, std::string> team_b_updates;

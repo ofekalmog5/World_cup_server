@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <chrono>
 #include <thread>
 
@@ -99,6 +100,13 @@ std::string StompProtocol::processInput(std::string input) {
         std::string allFrames = "";
         
         for (const Event& e : n_e.events) {
+            // Save locally as required by spec (for current user)
+            std::string gameKey = e.get_team_a_name() + std::string("_") + e.get_team_b_name();
+            Event localCopy(e.get_team_a_name(), e.get_team_b_name(), e.get_name(), e.get_time(),
+                            e.get_game_updates(), e.get_team_a_updates(), e.get_team_b_updates(), e.get_description());
+            localCopy.set_event_owner(currentUsername);
+            gameReports[gameKey].push_back(localCopy);
+
             allFrames += "SEND\ndestination:/" + e.get_team_a_name() + "_" + e.get_team_b_name() + "\n\n";
             
             // Body: all the event data
@@ -130,49 +138,109 @@ std::string StompProtocol::processInput(std::string input) {
         return allFrames;
     }
     if (command == "summary") {
-    std::string gameName = words[1];
-    std::string targetUser = words[2];
-    std::string filePath = words[3];
+        std::string gameName = words[1];
+        std::string targetUser = words[2];
+        std::string filePath = words[3];
 
-    std::ofstream outFile(filePath);
-    auto it = gameReports.find(gameName);
-    if (it != gameReports.end()) {
-        std::vector<Event>& events = it->second;
-        if (!events.empty()) {
-            outFile << events[0].get_team_a_name() << " vs " << events[0].get_team_b_name() << "\n";
+        std::ofstream outFile(filePath);
+        if (!outFile.is_open()) {
+            std::cout << "Error: Could not open file " << filePath << std::endl;
+            return "";
         }
 
-        outFile << "Game stats:\nGeneral stats:\n";
-        std::map<std::string, std::string> lastGeneralStats;
-        std::map<std::string, std::string> lastTeamAStats;
-        std::map<std::string, std::string> lastTeamBStats;
-
-        for (const Event& e : events) {
-            if (e.get_event_owner() == targetUser) { 
-                for (auto const& [key, val] : e.get_game_updates()) lastGeneralStats[key] = val;
-                for (auto const& [key, val] : e.get_team_a_updates()) lastTeamAStats[key] = val;
-                for (auto const& [key, val] : e.get_team_b_updates()) lastTeamBStats[key] = val;
+        auto it = gameReports.find(gameName);
+        if (it == gameReports.end()) {
+            // Try case-insensitive fallback to match channel keys
+            auto toLower = [](const std::string& s) {
+                std::string r = s;
+                std::transform(r.begin(), r.end(), r.begin(), [](unsigned char c){ return std::tolower(c); });
+                return r;
+            };
+            std::string wanted = toLower(gameName);
+            for (auto &kv : gameReports) {
+                if (toLower(kv.first) == wanted) { it = gameReports.find(kv.first); break; }
             }
         }
-
-        for (auto const& [key, val] : lastGeneralStats) outFile << "    " << key << ": " << val << "\n";
-        outFile << "Team a stats:\n";
-        for (auto const& [key, val] : lastTeamAStats) outFile << "    " << key << ": " << val << "\n";
-        outFile << "Team b stats:\n";
-        for (auto const& [key, val] : lastTeamBStats) outFile << "    " << key << ": " << val << "\n";
-        outFile << "Game event reports:\n";
-        for (const Event& e : events) {
-            if (e.get_event_owner() == targetUser) {
-                outFile << e.get_time() << " - " << e.get_name() << ":\n\n";
-                outFile << e.get_description() << "\n\n";
+        if (it != gameReports.end()) {
+            std::vector<Event>& events = it->second;
+            
+            // Filter events by target user
+            std::vector<Event> userEvents;
+            for (const Event& e : events) {
+                if (e.get_event_owner() == targetUser) {
+                    userEvents.push_back(e);
+                }
             }
+
+            if (userEvents.empty()) {
+                outFile << "No events found for user " << targetUser << " in game " << gameName << "\n";
+                outFile.close();
+                std::cout << "Summary written to " << filePath << std::endl;
+                return "";
+            }
+
+            // Sort events by time
+            std::sort(userEvents.begin(), userEvents.end(), [](const Event& a, const Event& b) {
+                return a.get_time() < b.get_time();
+            });
+
+            // Print header with team names
+            outFile << userEvents[0].get_team_a_name() << " vs " << userEvents[0].get_team_b_name() << "\n";
+            
+            // Accumulate stats (keep latest values)
+            std::map<std::string, std::string> lastGeneralStats;
+            std::map<std::string, std::string> lastTeamAStats;
+            std::map<std::string, std::string> lastTeamBStats;
+            std::string teamAName = userEvents[0].get_team_a_name();
+            std::string teamBName = userEvents[0].get_team_b_name();
+
+            for (const Event& e : userEvents) {
+                for (auto const& [key, val] : e.get_game_updates()) {
+                    lastGeneralStats[key] = val;
+                }
+                for (auto const& [key, val] : e.get_team_a_updates()) {
+                    lastTeamAStats[key] = val;
+                }
+                for (auto const& [key, val] : e.get_team_b_updates()) {
+                    lastTeamBStats[key] = val;
+                }
+            }
+
+            // Print stats (lexicographically sorted by key, thanks to std::map)
+            outFile << "Game stats :\n";
+            outFile << "General stats :\n";
+            for (auto const& [key, val] : lastGeneralStats) {
+                outFile << key << ": " << val << "\n";
+            }
+            
+            outFile << teamAName << " stats :\n";
+            for (auto const& [key, val] : lastTeamAStats) {
+                outFile << key << ": " << val << "\n";
+            }
+            
+            outFile << teamBName << " stats :\n";
+            for (auto const& [key, val] : lastTeamBStats) {
+                outFile << key << ": " << val << "\n";
+            }
+            
+            // Print game event reports (already sorted by time)
+            outFile << "Game event reports :\n";
+            for (const Event& e : userEvents) {
+                outFile << e.get_time() << " - " << e.get_name() << ":\n";
+                outFile << e.get_description();
+                if (!e.get_description().empty() && e.get_description().back() != '\n') {
+                    outFile << "\n";
+                }
+                outFile << "\n";
+            }
+        } else {
+            outFile << "No events found for game " << gameName << "\n";
         }
-    } else {
-        outFile << "No events found for channel " << gameName << "\n";
+        
+        outFile.close();
+        std::cout << "Summary written to " << filePath << std::endl;
+        return "";
     }
-    outFile.close();
-    return ""; 
-}
     return "";
 }
 void StompProtocol::processResponse(std::string frame) {

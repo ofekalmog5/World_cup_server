@@ -5,6 +5,7 @@
         {
             "event name": "kickoff",
             "time": 0,
+            "event owner": "",
             "general game updates": {
                 "active": "true",
                 "before halftime": "true"
@@ -26,6 +27,7 @@
         {
             "event name": "yellow card",
             "time": 450,
+            "event owner": "",
             "general game updates": {},
             "team a updates": {
                 "yellow cards": "1"
@@ -36,6 +38,7 @@
         {
             "event name": "goal",
             "time": 1980,
+            "event owner": "",
             "general game updates": {},
             "team a updates": {
                 "goals": "1",
@@ -49,6 +52,7 @@
         {
             "event name": "halftime",
             "time": 2700,
+            "event owner": "",
             "general game updates": {
                 "before halftime": "false"
             },
@@ -59,6 +63,7 @@
         {
             "event name": "second half",
             "time": 2701,
+            "event owner": "",
             "general game updates": {
                 "before halftime": "false"
             },
@@ -69,6 +74,7 @@
         {
             "event name": "goal",
             "time": 4500,
+            "event owner": "",
             "general game updates": {},
             "team a updates": {
                 "possession": "45%"
@@ -82,6 +88,7 @@
         {
             "event name": "goal",
             "time": 4980,
+            "event owner": "",
             "general game updates": {},
             "team a updates": {
                 "possession": "40%"
@@ -95,6 +102,7 @@
         {
             "event name": "full time",
             "time": 5400,
+            "event owner": "",
             "general game updates": {
                 "active": "false"
             },

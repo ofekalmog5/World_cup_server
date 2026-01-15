@@ -5,6 +5,7 @@
         {
             "event name": "kickoff",
             "time": 0,
+            "event owner": "",
             "general game updates": {
                 "active": "true",
                 "before halftime": "true"
@@ -26,6 +27,7 @@
         {
             "event name": "goal",
             "time": 1200,
+            "event owner": "",
             "general game updates": {},
             "team a updates": {
                 "goals": "1",
@@ -39,6 +41,7 @@
         {
             "event name": "goal",
             "time": 2400,
+            "event owner": "",
             "general game updates": {},
             "team a updates": {
                 "possession": "55%"
@@ -52,6 +55,7 @@
         {
             "event name": "halftime",
             "time": 2700,
+            "event owner": "",
             "general game updates": {
                 "before halftime": "false"
             },
@@ -62,6 +66,7 @@
         {
             "event name": "full time",
             "time": 5400,
+            "event owner": "",
             "general game updates": {
                 "active": "false"
             },
