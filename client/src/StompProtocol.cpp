@@ -60,7 +60,6 @@ std::string StompProtocol::processInput(std::string input) {
     }
 
     if (command == "exit") {
-        // Check if channel name provided (unsubscribe from channel)
         if (words.size() > 1) {
             std::string gameName = words[1];
             if (channelToSubId.count(gameName) == 0) {
@@ -150,7 +149,6 @@ std::string StompProtocol::processInput(std::string input) {
 
         auto it = gameReports.find(gameName);
         if (it == gameReports.end()) {
-            // Try case-insensitive fallback to match channel keys
             auto toLower = [](const std::string& s) {
                 std::string r = s;
                 std::transform(r.begin(), r.end(), r.begin(), [](unsigned char c){ return std::tolower(c); });
@@ -164,7 +162,6 @@ std::string StompProtocol::processInput(std::string input) {
         if (it != gameReports.end()) {
             std::vector<Event>& events = it->second;
             
-            // Filter events by target user
             std::vector<Event> userEvents;
             for (const Event& e : events) {
                 if (e.get_event_owner() == targetUser) {
@@ -179,15 +176,12 @@ std::string StompProtocol::processInput(std::string input) {
                 return "";
             }
 
-            // Sort events by time
             std::sort(userEvents.begin(), userEvents.end(), [](const Event& a, const Event& b) {
                 return a.get_time() < b.get_time();
             });
 
-            // Print header with team names
             outFile << userEvents[0].get_team_a_name() << " vs " << userEvents[0].get_team_b_name() << "\n";
             
-            // Accumulate stats (keep latest values)
             std::map<std::string, std::string> lastGeneralStats;
             std::map<std::string, std::string> lastTeamAStats;
             std::map<std::string, std::string> lastTeamBStats;
@@ -206,7 +200,6 @@ std::string StompProtocol::processInput(std::string input) {
                 }
             }
 
-            // Print stats (lexicographically sorted by key, thanks to std::map)
             outFile << "Game stats :\n";
             outFile << "General stats :\n";
             for (auto const& [key, val] : lastGeneralStats) {
@@ -223,7 +216,6 @@ std::string StompProtocol::processInput(std::string input) {
                 outFile << key << ": " << val << "\n";
             }
             
-            // Print game event reports (already sorted by time)
             outFile << "Game event reports :\n";
             for (const Event& e : userEvents) {
                 outFile << e.get_time() << " - " << e.get_name() << ":\n";
@@ -283,7 +275,6 @@ void StompProtocol::processResponse(std::string frame) {
     if (bodyPos != std::string::npos) {
         std::string body = frame.substr(bodyPos + 2);
 
-        // Remove null terminator if present
         if (!body.empty() && body.back() == '\0') {
             body.pop_back();
         }

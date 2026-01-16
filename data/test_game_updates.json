@@ -1,0 +1,72 @@
+{
+    "team a": "Germany",
+    "team b": "Japan",
+    "events": [
+        {
+            "event name": "yellow_card",
+            "time": 2500,
+            "event owner": "",
+            "general game updates": {
+                "active": "true",
+                "before halftime": "true"
+            },
+            "team a updates": {
+                "goals": "1",
+                "yellow cards": "1",
+                "red cards": "0",
+                "possession": "60%"
+            },
+            "team b updates": {
+                "goals": "0",
+                "yellow cards": "0",
+                "red cards": "0",
+                "possession": "40%"
+            },
+            "description": "Yellow card to Germany player #7"
+        },
+        {
+            "event name": "substitution",
+            "time": 3200,
+            "event owner": "",
+            "general game updates": {
+                "active": "true",
+                "before halftime": "true"
+            },
+            "team a updates": {
+                "goals": "1",
+                "yellow cards": "1",
+                "red cards": "0",
+                "possession": "58%"
+            },
+            "team b updates": {
+                "goals": "0",
+                "yellow cards": "0",
+                "red cards": "0",
+                "possession": "42%"
+            },
+            "description": "Germany substitutes player #7 with #10"
+        },
+        {
+            "event name": "goal",
+            "time": 4800,
+            "event owner": "",
+            "general game updates": {
+                "active": "true",
+                "before halftime": "false"
+            },
+            "team a updates": {
+                "goals": "1",
+                "yellow cards": "1",
+                "red cards": "0",
+                "possession": "50%"
+            },
+            "team b updates": {
+                "goals": "1",
+                "yellow cards": "0",
+                "red cards": "0",
+                "possession": "50%"
+            },
+            "description": "Japan scores an equalizer! Match tied 1-1"
+        }
+    ]
+}

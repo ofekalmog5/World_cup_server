@@ -1,0 +1,72 @@
+{
+    "team a": "Germany",
+    "team b": "Japan",
+    "events": [
+        {
+            "event name": "yellow_card",
+            "time": 5200,
+            "event owner": "",
+            "general game updates": {
+                "active": "true",
+                "before halftime": "false"
+            },
+            "team a updates": {
+                "goals": "1",
+                "yellow cards": "1",
+                "red cards": "0",
+                "possession": "48%"
+            },
+            "team b updates": {
+                "goals": "1",
+                "yellow cards": "1",
+                "red cards": "0",
+                "possession": "52%"
+            },
+            "description": "Yellow card to Japan player #5"
+        },
+        {
+            "event name": "red_card",
+            "time": 6100,
+            "event owner": "",
+            "general game updates": {
+                "active": "true",
+                "before halftime": "false"
+            },
+            "team a updates": {
+                "goals": "1",
+                "yellow cards": "2",
+                "red cards": "1",
+                "possession": "45%"
+            },
+            "team b updates": {
+                "goals": "1",
+                "yellow cards": "1",
+                "red cards": "0",
+                "possession": "55%"
+            },
+            "description": "Red card! Germany player #3 sent off after second yellow"
+        },
+        {
+            "event name": "goal",
+            "time": 6800,
+            "event owner": "",
+            "general game updates": {
+                "active": "false",
+                "before halftime": "false"
+            },
+            "team a updates": {
+                "goals": "1",
+                "yellow cards": "2",
+                "red cards": "1",
+                "possession": "40%"
+            },
+            "team b updates": {
+                "goals": "2",
+                "yellow cards": "1",
+                "red cards": "0",
+                "possession": "60%"
+            },
+            "description": "FINAL GOAL: Japan scores with 10 men vs 11. Final score 2-1 to Japan!"
+        }
+    ]
+}

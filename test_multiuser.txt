@@ -1,0 +1,69 @@
+=== MULTI-USER TEST COMMANDS ===
+This tests the system with different users reporting on the same game.
+
+=== SERVER START ===
+cd server
+mvn exec:java "-Dexec.mainClass=bgu.spl.net.impl.stomp.StompServer" "-Dexec.args=7777 tpc"
+
+=== TERMINAL 1: User "reporter1" ===
+cd client
+.\bin\StompWCIClient.exe
+
+Commands:
+login 127.0.0.1:7777 reporter1 pass123
+join Germany_Japan
+report client/data/test_game.json
+summary Germany_Japan reporter1 output_reporter1.txt
+exit
+
+=== TERMINAL 2: User "reporter2" ===
+cd client
+.\bin\StompWCIClient.exe
+
+Commands:
+login 127.0.0.1:7777 reporter2 pass456
+join Germany_Japan
+report client/data/test_game_updates.json
+summary Germany_Japan reporter2 output_reporter2.txt
+exit
+
+=== TERMINAL 3: User "reporter3" ===
+cd client
+.\bin\StompWCIClient.exe
+
+Commands:
+login 127.0.0.1:7777 reporter3 pass789
+join Germany_Japan
+report client/data/test_game_final.json
+summary Germany_Japan reporter3 output_reporter3.txt
+exit
+
+=== VERIFICATION ===
+Check output files to verify:
+- output_reporter1.txt: Contains stats from reporter1's events
+- output_reporter2.txt: Contains stats from reporter2's events
+- output_reporter3.txt: Contains stats from reporter3's events
+- All should show Germany vs Japan with different event times/stats based on their reports
+
+Each user should see ONLY their own reported events (filtered by event_owner = their username)
+
+=== OUTPUT FORMAT ===
+Expected format in each output file:
+Germany vs Japan
+Game stats:
+General stats:
+    active: <value>
+    before halftime: <value>
+Team a stats:
+    goals: <value>
+    possession: <value%>
+    red cards: <value>
+    yellow cards: <value>
+Team b stats:
+    goals: <value>
+    possession: <value%>
+    red cards: <value>
+    yellow cards: <value>
+Game event reports:
+<time> - <event_name>:
+<description>

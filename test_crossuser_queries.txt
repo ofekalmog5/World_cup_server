@@ -1,0 +1,151 @@
+=== CROSS-USER EVENT QUERYING ===
+
+The summary command syntax:
+  summary <channel> <targetUser> <output_file>
+
+The <targetUser> parameter specifies WHOSE events you want to see,
+not WHO is requesting them. So any user can query any other user's events!
+
+==============================================================================
+=== TEST: Reporter1 Querying All Users' Events ===
+==============================================================================
+
+TERMINAL 1: First, all three users submit their reports
+───────────────────────────────────────────────────────
+
+REPORTER1:
+.\bin\StompWCIClient.exe
+  login 127.0.0.1:7777 reporter1 pass123
+  join Germany_Japan
+  report client/data/test_game.json
+  exit
+
+REPORTER2:
+.\bin\StompWCIClient.exe
+  login 127.0.0.1:7777 reporter2 pass456
+  join Germany_Japan
+  report client/data/test_game_updates.json
+  exit
+
+REPORTER3:
+.\bin\StompWCIClient.exe
+  login 127.0.0.1:7777 reporter3 pass789
+  join Germany_Japan
+  report client/data/test_game_final.json
+  exit
+
+==============================================================================
+=== TERMINAL 2: Reporter1 Queries Different Users ===
+==============================================================================
+
+.\bin\StompWCIClient.exe
+  login 127.0.0.1:7777 reporter1 pass123
+  join Germany_Japan
+  
+  # Get reporter1's own events
+  summary Germany_Japan reporter1 r1_own_events.txt
+  
+  # Get reporter2's events (reporter1 is still logged in as reporter1)
+  summary Germany_Japan reporter2 r2_events_queried_by_r1.txt
+  
+  # Get reporter3's events (reporter1 is still logged in as reporter1)
+  summary Germany_Japan reporter3 r3_events_queried_by_r1.txt
+  
+  exit
+
+==============================================================================
+=== EXPECTED OUTPUT FILES ===
+==============================================================================
+
+r1_own_events.txt:
+  Germany vs Japan
+  [3 events at times: 0, 1980, 4500]
+  [Stats from reporter1's last event]
+
+r2_events_queried_by_r1.txt:
+  Germany vs Japan
+  [3 events at times: 2500, 3200, 4800]
+  [Stats from reporter2's last event]
+  ← But requested BY reporter1!
+
+r3_events_queried_by_r1.txt:
+  Germany vs Japan
+  [3 events at times: 5200, 6100, 6800]
+  [Stats from reporter3's last event]
+  ← But requested BY reporter1!
+
+KEY POINT: The files contain events from different users (reporter2, reporter3)
+even though they were all requested by reporter1!
+
+==============================================================================
+=== HOW THE FILTERING WORKS ===
+==============================================================================
+
+In client/src/StompProtocol.cpp line 167:
+
+    // targetUser is the 2nd argument of the summary command
+    // (passed by the user, not based on who issued the command)
+    
+    for (const Event& e : events) {
+        if (e.get_event_owner() == targetUser) {
+            userEvents.push_back(e);
+        }
+    }
+
+So:
+- Reporter1 executes: summary Germany_Japan reporter2 output.txt
+- targetUser = "reporter2" (from the command argument)
+- System filters events WHERE event_owner == "reporter2"
+- Reporter1 gets reporter2's events, not their own!
+
+==============================================================================
+=== PRACTICAL USE CASES ===
+==============================================================================
+
+1. SPORTS OFFICIAL (Reporter1) verifies data from multiple reporters:
+   ✓ summary Germany_Japan reporter2 verify_r2.txt
+   ✓ summary Germany_Japan reporter3 verify_r3.txt
+   ✓ Compare all reports in one terminal
+
+2. DATA AUDITING:
+   ✓ Check consistency: Do all reporters see the same game progression?
+   ✓ Verify timestamps: Do events occur in logical order?
+   ✓ Cross-validate: Do team stats match across reports?
+
+3. HISTORICAL REVIEW:
+   ✓ Query past reporter data
+   ✓ Pull specific user's game records
+   ✓ Generate summary reports per reporter
+
+==============================================================================
+=== VERIFICATION SCENARIO ===
+==============================================================================
+
+After all three users report, reporter1 runs:
+
+summary Germany_Japan reporter1 output.txt
+  → Contains 3 events (0, 1980, 4500)
+
+summary Germany_Japan reporter2 output.txt
+  → Contains 3 DIFFERENT events (2500, 3200, 4800)
+
+summary Germany_Japan reporter3 output.txt
+  → Contains 3 DIFFERENT events (5200, 6100, 6800)
+
+SUCCESS: Each command returns DIFFERENT events based on the requested username,
+regardless of who issued the command!
+
+==============================================================================
+=== IMPORTANT SECURITY NOTE ===
+==============================================================================
+
+This assumes the protocol is designed to allow users to query any user's data.
+If the assignment requires users to only see their OWN events, you would need:
+
+  - Server-side filtering: Server compares logged-in user with requested user
+  - Client-side validation: Client only allows querying own username
+  
+Check your assignment specification for access control requirements!
+
+Current implementation allows any user to query any other user's events.
+If this is NOT intended, the filtering logic needs to be moved to the server.

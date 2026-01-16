@@ -7,7 +7,6 @@ import bgu.spl.net.impl.data.Database;
 
 public class ConnectionsImpl<T> implements Connections<T> {
     private final ConcurrentHashMap<Integer, ConnectionHandler<T>> activeConnections = new ConcurrentHashMap<>();
-
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<Subscriber>> channelSubscribers = new ConcurrentHashMap<>();
     private static class Subscriber {
     private final int connectionId; 

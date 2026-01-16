@@ -1,46 +1,64 @@
 Germany vs Japan
-Game stats:
-General stats:
-    active: true
-    before halftime: false
-Team a stats:
-    goals: 1
-    possession: 45%
-    red cards: 0
-    yellow cards: 0
-Team b stats:
-    goals: 1
-    possession: 55%
-    red cards: 0
-    yellow cards: 0
-Game event reports:
+Game stats :
+General stats :
+active: false
+before halftime: false
+Germany stats :
+goals: 1
+possession: 40%
+red cards: 0
+yellow cards: 1
+Japan stats :
+goals: 2
+possession: 60%
+red cards: 0
+yellow cards: 0
+Game event reports :
 0 - kickoff:
-
-Game starts!
-
-
-1980 - goal:
-
-Germany scores!
-
-
-4500 - goal:
-
-Japan equalizes!
-
+The game has started! Germany vs Japan in an exciting World Cup match!
 
 0 - kickoff:
+The game has started! Germany vs Japan in an exciting World Cup match!
 
-Game starts!
+450 - yellow card:
+Yellow card for Germany! A harsh tackle in midfield.
 
+450 - yellow card:
+Yellow card for Germany! A harsh tackle in midfield.
 
 1980 - goal:
+GOAL! Germany takes the lead! Gundogan converts the penalty. Germany 1-0 Japan.
 
-Germany scores!
+1980 - goal:
+GOAL! Germany takes the lead! Gundogan converts the penalty. Germany 1-0 Japan.
 
+2700 - halftime:
+Halftime! Germany leads 1-0 at the break.
+
+2700 - halftime:
+Halftime! Germany leads 1-0 at the break.
+
+2701 - second half:
+Second half begins! Can Japan find an equalizer?
+
+2701 - second half:
+Second half begins! Can Japan find an equalizer?
 
 4500 - goal:
+GOAL! Japan equalizes! Incredible comeback! Germany 1-1 Japan.
 
-Japan equalizes!
+4500 - goal:
+GOAL! Japan equalizes! Incredible comeback! Germany 1-1 Japan.
 
+4980 - goal:
+GOAL! Japan takes the lead! Stunning turnaround! Germany 1-2 Japan.
+
+4980 - goal:
+GOAL! Japan takes the lead! Stunning turnaround! Germany 1-2 Japan.
+
+5400 - full time:
+Full time! Japan wins 2-1 in a historic upset over Germany!
+
+5400 - full time:
+Full time! Japan wins 2-1 in a historic upset over Germany!
 

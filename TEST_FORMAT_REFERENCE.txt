@@ -1,0 +1,93 @@
+=== QUICK REFERENCE: JSON FORMAT ===
+
+The JSON structure includes General Stats that appear in the summary output:
+
+{
+    "team a": "<team_name>",
+    "team b": "<team_name>",
+    "events": [
+        {
+            "event name": "<event_type>",
+            "time": <timestamp_in_seconds>,
+            "event owner": "",  // Empty - will be filled by system
+            
+            // GENERAL GAME STATS (shown in output)
+            "general game updates": {
+                "active": "true|false",
+                "before halftime": "true|false"
+            },
+            
+            // TEAM A STATS (shown in output)
+            "team a updates": {
+                "goals": "<number>",
+                "yellow cards": "<number>",
+                "red cards": "<number>",
+                "possession": "<percentage>"
+            },
+            
+            // TEAM B STATS (shown in output)
+            "team b updates": {
+                "goals": "<number>",
+                "yellow cards": "<number>",
+                "red cards": "<number>",
+                "possession": "<percentage>"
+            },
+            
+            "description": "<event_description>"
+        }
+    ]
+}
+
+=== TEST DATA FILES CREATED ===
+
+1. test_game.json
+   - 3 events: kickoff (0s), Germany goal (1980s), Japan goal (4500s)
+   - Final stats: Germany 1-1 Japan
+   - Use for reporter1
+
+2. test_game_updates.json
+   - 3 events: yellow card (2500s), substitution (3200s), goal (4800s)
+   - Different event times and updates from reporter1
+   - Use for reporter2
+
+3. test_game_final.json
+   - 3 events: yellow card (5200s), red card (6100s), goal (6800s)
+   - Final score Japan 2-1 Germany with red card incident
+   - Use for reporter3
+
+=== MULTI-USER TEST ===
+
+Each user reports different events. The summary command filters by event_owner,
+so each user sees ONLY their own reported events:
+
+- reporter1 reports 3 events → output_reporter1.txt shows those 3 events
+- reporter2 reports 3 events → output_reporter2.txt shows those 3 events  
+- reporter3 reports 3 events → output_reporter3.txt shows those 3 events
+
+All files should show Germany vs Japan header and stats reflecting their own reports.
+
+=== HOW GENERAL STATS APPEAR IN OUTPUT ===
+
+Germany vs Japan
+Game stats:
+General stats:
+    active: true
+    before halftime: false
+Team a stats:
+    goals: 1
+    possession: 45%
+    red cards: 0
+    yellow cards: 0
+Team b stats:
+    goals: 1
+    possession: 55%
+    red cards: 0
+    yellow cards: 0
+Game event reports:
+0 - kickoff:
+Game starts!
+1980 - goal:
+Germany scores!
+...
+
+The "General stats" section shows the last event's general game updates for that user.

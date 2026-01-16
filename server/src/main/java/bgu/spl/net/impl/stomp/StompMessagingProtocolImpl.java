@@ -36,7 +36,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         if (cleanedMessage.isEmpty()) return;
         String command = cleanedMessage.split("\\n")[0].trim();
     Consumer<String> handler = commandHandlers.get(command);
-        if (handler != null) {
+        if (handler != null) {  
             handler.accept(message);
         } else {
             connections.send(connectionId, "ERROR\nmessage: Unknown Command\n\nThe command " + command + " is not implemented.\u0000");
@@ -142,9 +142,9 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     shouldTerminate = true;
     }
 
-        private void handleSend(String message) {
-        Map<String, String> headers = parseHeaders(message);
-    
+    private void handleSend(String message) {
+    Map<String, String> headers = parseHeaders(message);
+
       if (this.currentUser == null) {
         sendError("Not Logged In", "You must send a CONNECT frame first", headers);
         return;

@@ -1,0 +1,151 @@
+=== CROSS-USER UPDATES TEST ===
+This tests that the system properly tracks which user reported what events.
+
+=== SERVER START ===
+cd server
+mvn exec:java "-Dexec.mainClass=bgu.spl.net.impl.stomp.StompServer" "-Dexec.args=7777 tpc"
+
+==============================================================================
+=== SCENARIO 1: SEQUENTIAL REPORTING (Same game, different reporters) ===
+==============================================================================
+
+TERMINAL 1: reporter1 reports initial events
+-------------------------------------------
+.\bin\StompWCIClient.exe
+
+login 127.0.0.1:7777 reporter1 pass123
+join Germany_Japan
+report client/data/test_game.json
+summary Germany_Japan reporter1 output_reporter1.txt
+exit
+
+OUTPUT: output_reporter1.txt
+Expected: 3 events (kickoff, goal, goal) with event_owner = reporter1
+---
+
+TERMINAL 2: reporter2 reports additional events  
+-------------------------------------------
+.\bin\StompWCIClient.exe
+
+login 127.0.0.1:7777 reporter2 pass456
+join Germany_Japan
+report client/data/test_game_updates.json
+summary Germany_Japan reporter2 output_reporter2.txt
+exit
+
+OUTPUT: output_reporter2.txt
+Expected: 3 DIFFERENT events (yellow card, substitution, goal) with event_owner = reporter2
+---
+
+TERMINAL 3: reporter3 reports final events
+-------------------------------------------
+.\bin\StompWCIClient.exe
+
+login 127.0.0.1:7777 reporter3 pass789
+join Germany_Japan
+report client/data/test_game_final.json
+summary Germany_Japan reporter3 output_reporter3.txt
+exit
+
+OUTPUT: output_reporter3.txt
+Expected: 3 DIFFERENT events (yellow card, red card, final goal) with event_owner = reporter3
+---
+
+==============================================================================
+=== VERIFICATION OF CROSS-USER FILTERING ===
+==============================================================================
+
+✅ Verify output_reporter1.txt shows ONLY:
+   - Time 0: kickoff
+   - Time 1980: goal (Germany)
+   - Time 4500: goal (Japan)
+   Total: 3 events
+
+✅ Verify output_reporter2.txt shows ONLY:
+   - Time 2500: yellow_card
+   - Time 3200: substitution
+   - Time 4800: goal
+   Total: 3 events
+
+✅ Verify output_reporter3.txt shows ONLY:
+   - Time 5200: yellow_card
+   - Time 6100: red_card
+   - Time 6800: goal
+   Total: 3 events
+
+Key Point: Each file has DIFFERENT event times and different event types
+This proves the system correctly tracks event_owner and filters by it!
+
+==============================================================================
+=== SCENARIO 2: SAME USER REPORTING MULTIPLE TIMES ===
+==============================================================================
+
+TERMINAL 4: Same user, same event data twice
+----------------------------------------------
+.\bin\StompWCIClient.exe
+
+login 127.0.0.1:7777 reporter1 pass123
+join Germany_Japan
+report client/data/test_game.json
+summary Germany_Japan reporter1 output_reporter1_first.txt
+
+// Report same events again
+report client/data/test_game.json
+summary Germany_Japan reporter1 output_reporter1_second.txt
+
+exit
+
+Expected: Both output files identical
+- Same 3 events
+- Same stats
+- Same timeline
+Verifies: System handles repeated reports from same user
+
+==============================================================================
+=== SCENARIO 3: VERIFY EVENT OWNER IN MESSAGES ===
+==============================================================================
+
+To verify event_owner is correctly set in transmitted messages, you can check:
+
+1. Server logs should show events being stored with event_owner field set
+2. Each MESSAGE frame body contains the full event with event_owner field
+3. Summary command filters by comparing event_owner to requesting username
+
+The event_owner field is set when:
+- Client: SEND frame is created with event data
+- Server: Receives SEND, extracts body, parses event JSON
+- Server: Sets event_owner = username from connection
+- Server: Broadcasts MESSAGE to subscribers
+- Client: Receives MESSAGE, parses JSON with event_owner included
+
+==============================================================================
+=== COMPARISON TABLE ===
+==============================================================================
+
+Reporter1 Events (test_game.json):
+├─ Time:  0    | Type: kickoff     | Updated: Germany 0-0 Japan | Status: Halftime start
+├─ Time:  1980 | Type: goal        | Updated: Germany 1-0 Japan | Status: Halftime
+└─ Time:  4500 | Type: goal        | Updated: Germany 1-1 Japan | Status: Post-halftime
+
+Reporter2 Events (test_game_updates.json):
+├─ Time:  2500 | Type: yellow_card | Updated: Germany gets yellow | Status: Halftime
+├─ Time:  3200 | Type: substitution| Updated: Substitution made   | Status: Halftime
+└─ Time:  4800 | Type: goal        | Updated: Germany 1-1 Japan  | Status: Post-halftime
+
+Reporter3 Events (test_game_final.json):
+├─ Time:  5200 | Type: yellow_card | Updated: Japan gets yellow   | Status: Post-halftime
+├─ Time:  6100 | Type: red_card    | Updated: Germany red card    | Status: Post-halftime
+└─ Time:  6800 | Type: goal        | Updated: Japan 2-1 Germany   | Status: Game over
+
+==============================================================================
+=== WHAT TO CHECK ===
+==============================================================================
+
+1. Event Times are DIFFERENT → Proves separate event lists per user
+2. Event Types vary → Confirms different data files used
+3. Final Stats vary → Each user sees their own last event's stats
+4. Event Description text → Different messages (e.g., "Germany scores!" vs "Japan scores with 10 men")
+5. Possession % changes → Different statistics from different reporters
+
+If all files contain the right mix of events with no overlap, the event_owner
+filtering is working correctly!

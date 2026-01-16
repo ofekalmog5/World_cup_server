@@ -1,0 +1,34 @@
+Germany vs Japan
+Game stats :
+General stats :
+active: true
+before halftime: false
+Germany stats :
+goals: 1
+possession: 50%
+red cards: 0
+yellow cards: 1
+Japan stats :
+goals: 1
+possession: 50%
+red cards: 0
+yellow cards: 0
+Game event reports :
+2500 - yellow_card:
+Yellow card to Germany player #7
+
+2500 - yellow_card:
+Yellow card to Germany player #7
+
+3200 - substitution:
+Germany substitutes player #7 with #10
+
+3200 - substitution:
+Germany substitutes player #7 with #10
+
+4800 - goal:
+Japan scores an equalizer! Match tied 1-1
+
+4800 - goal:
+Japan scores an equalizer! Match tied 1-1
+

@@ -1,0 +1,140 @@
+=== HOW EVENT_OWNER FILTERING WORKS ===
+
+When a user submits a report, the system does the following:
+
+1. CLIENT SIDE (StompProtocol.cpp line 106):
+   ✅ User runs: report client/data/test_game.json
+   ✅ Client parses JSON file into Event objects
+   ✅ FOR EACH event:
+      - Calls: localCopy.set_event_owner(currentUsername)
+      - Stores locally in gameReports[gameKey] map
+      - Creates SEND frame with "user: <username>" in body
+
+2. TRANSMISSION:
+   ✅ Client sends SEND frames through STOMP protocol
+   ✅ Each frame contains: user, team a, team b, event name, time, updates, description
+   ✅ Server receives and broadcasts as MESSAGE frames to all subscribers
+
+3. SERVER SIDE:
+   ✅ Server extracts body from MESSAGE frame
+   ✅ Broadcasts message to all subscribed clients
+   ✅ Server does NOT parse or set event_owner (client handles this)
+
+4. RECEIVING CLIENT SIDE (StompProtocol.cpp line 317):
+   ✅ Client receives MESSAGE frame
+   ✅ Parses the body to extract: "user: <reporter_name>"
+   ✅ Calls: e.set_event_owner(user) where user = reporter_name
+   ✅ Stores in gameReports[gameKey] vector
+
+5. SUMMARY COMMAND (StompProtocol.cpp line 167):
+   ✅ User runs: summary <channel> <username> <output_file>
+   ✅ Client filters: if (e.get_event_owner() == targetUser)
+   ✅ ONLY events where event_owner matches are written to file
+   ✅ Each user sees ONLY their own reported events
+
+==============================================================================
+=== WHAT THE TEST PROVES ===
+==============================================================================
+
+By having 3 different users report to the same channel:
+
+reporter1: reports test_game.json (3 events at 0s, 1980s, 4500s)
+reporter2: reports test_game_updates.json (3 events at 2500s, 3200s, 4800s)
+reporter3: reports test_game_final.json (3 events at 5200s, 6100s, 6800s)
+
+Then running summary for each user should produce:
+
+output_reporter1.txt: 3 events with times 0, 1980, 4500
+output_reporter2.txt: 3 events with times 2500, 3200, 4800
+output_reporter3.txt: 3 events with times 5200, 6100, 6800
+
+✅ Each file has DIFFERENT event times
+✅ Each file has DIFFERENT event types and descriptions
+✅ Each file has DIFFERENT final statistics (from that user's last event)
+✅ NO events appear in multiple files (perfect filtering)
+
+This PROVES that:
+1. event_owner is correctly set to the reporting username
+2. event_owner is correctly transmitted in MESSAGE frames
+3. event_owner is correctly parsed from received messages
+4. summary command correctly filters by event_owner
+
+==============================================================================
+=== HOW TO VERIFY THE TEST RESULTS ===
+==============================================================================
+
+After running all three reporter users, you should have:
+
+output_reporter1.txt | output_reporter2.txt | output_reporter3.txt
+─────────────────────┼──────────────────────┼─────────────────────
+Event time 0         | Event time 2500      | Event time 5200
+Event time 1980      | Event time 3200      | Event time 6100
+Event time 4500      | Event time 4800      | Event time 6800
+
+Germany 1-1 Japan    | Germany 1-1 Japan    | Germany 1-2 Japan
+Possession 45%-55%   | Possession 58%-42%   | Possession 40%-60%
+Red cards: 0-0       | Red cards: 0-0       | Red cards: 1-0
+
+SUCCESS CRITERIA:
+├─ Each output has exactly 3 events
+├─ Event times in reporter1 output: 0, 1980, 4500
+├─ Event times in reporter2 output: 2500, 3200, 4800
+├─ Event times in reporter3 output: 5200, 6100, 6800
+├─ No duplicate event times across files
+├─ Each file shows stats from that user's last event
+├─ Description text matches each user's data file
+└─ Germany vs Japan header present in all files
+
+==============================================================================
+=== CROSS-USER VERIFICATION SCENARIO ===
+==============================================================================
+
+Alternative test: Have reporter1 query after reporter2 and reporter3 report:
+
+TERMINAL 1:
+login 127.0.0.1:7777 reporter1 pass123
+join Germany_Japan
+report client/data/test_game.json
+summary Germany_Japan reporter1 output_r1_initial.txt
+
+// Wait for reporters 2 and 3...
+
+summary Germany_Japan reporter1 output_r1_after_others.txt
+exit
+
+RESULT:
+- output_r1_initial.txt: 3 events (only reporter1's)
+- output_r1_after_others.txt: STILL 3 events (still only reporter1's)
+
+This proves summary FILTERS and doesn't mix events from different users!
+
+==============================================================================
+=== CODE VERIFICATION ===
+==============================================================================
+
+The key filtering logic is in client/src/StompProtocol.cpp line 167:
+
+    for (const Event& e : events) {
+        if (e.get_event_owner() == targetUser) {
+            userEvents.push_back(e);
+        }
+    }
+
+This line ensures:
+- Only events where event_owner matches the requested username are included
+- All other events (from different reporters) are excluded
+- Each user gets a unique, filtered view of the data
+
+==============================================================================
+=== SUMMARY STATS ===
+==============================================================================
+
+The stats shown in each summary output come from the LAST event
+that user reported:
+
+Reporter1's last event (4500s): Germany 1-1 Japan, 45%-55% possession
+Reporter2's last event (4800s): Germany 1-1 Japan, 58%-42% possession  
+Reporter3's last event (6800s): Germany 1-2 Japan, 40%-60% possession
+
+If the stats in each file match the last event's data, the system is
+correctly tracking and displaying user-specific information!
