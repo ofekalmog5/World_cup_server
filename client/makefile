@@ -1,6 +1,6 @@
 CXX := g++
 CFLAGS := -c -Wall -Weffc++ -g -std=c++11 -Iinclude
-LDFLAGS := -lpthread -lws2_32
+LDFLAGS := -lpthread -lboost_system
 
 all: StompWCIClient
 
@@ -37,4 +37,4 @@ bin/echoClient.o: src/echoClient.cpp
 
 .PHONY: clean
 clean:
-	"C:/msys64/usr/bin/bash.exe" -lc "rm -f bin/*"
+	rm -f bin/*

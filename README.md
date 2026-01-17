@@ -12,6 +12,43 @@ This is a comprehensive STOMP (Streaming Text Oriented Messaging Protocol) imple
 
 ## Quick Start (5 minutes)
 
+### Linux/Container Quick Start
+
+**1. Compile Server:**
+```bash
+cd server
+mvn compile
+```
+
+**2. Start Server (reactor pattern):**
+```bash
+java -cp target/classes bgu.spl.net.impl.stomp.StompServer 7777 reactor &
+```
+
+**3. Build Client:**
+```bash
+cd ../client
+rm -f bin/*
+make StompWCIClient
+```
+
+**4. Run Client:**
+```bash
+./bin/StompWCIClient
+```
+
+**5. Interactive Commands:**
+```
+login 127.0.0.1:7777 username password
+join Germany_Japan
+report data/test_game.json
+exit
+```
+
+---
+
+### Windows Quick Start
+
 ### Step 1: Start the Java STOMP Server
 
 **Option A - Using Batch File:**
@@ -27,13 +64,19 @@ mvn exec:java "-Dexec.mainClass=bgu.spl.net.impl.stomp.StompServer" "-Dexec.args
 
 **Expected Output:**
 ```
-[INFO] Server started on port 7777
+Server started
 ```
 
 Server will listen on port 7777 and accept client connections.
 
 ### Step 2: Verify Server is Running (in another terminal)
 
+**Linux/Container:**
+```bash
+ps aux | grep StompServer | grep -v grep
+```
+
+**Windows:**
 ```bash
 python quick_test.py
 ```
@@ -50,6 +93,13 @@ version:1.2
 
 ### Step 3: Run C++ Client
 
+**Linux/Container:**
+```bash
+cd client
+./bin/StompWCIClient
+```
+
+**Windows:**
 ```bash
 client\bin\StompWCIClient.exe
 ```
@@ -63,8 +113,16 @@ run_client.bat
 ```
 login 127.0.0.1:7777 testuser testpass
 join Germany_Japan
-taskkill /PID <PID> /F
+report data/test_game.json
 exit
+```
+
+**Stop Server (Linux/Container):**
+```bash
+# Find server process
+ps aux | grep StompServer | grep -v grep
+# Kill it (replace PID with actual process ID)
+kill <PID>
 ```
 
 ---
